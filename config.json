@@ -1,0 +1,16 @@
+{
+  "rules": [
+    {
+      "id": "clean code",
+      "name": "Clean code rules",
+      "path": "clean-code.md",
+      "description": "Clean code rules."
+    },
+    {
+      "id": "terminal",
+      "name": "Terminal rules",
+      "path": "terminal.md",
+      "description": "Terminal rules."
+    }
+  ]
+}
