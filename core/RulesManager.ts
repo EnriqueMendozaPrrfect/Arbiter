@@ -54,44 +54,44 @@ export class RulesManager {
         name: rule.name,
         ruleId: rule.id,
         metadata: { description: rule.description, mimeType: 'text/markdown' },
+        handler: this.createRuleHandler(rule),
         template: new ResourceTemplate(`rules://${rule.id}`, {
           list: undefined,
-        }),
-        handler: this.handleRuleRequest,
+        })
       });
     }
 
     return resources;
   }
 
-  private async handleRuleRequest(uri: { href: string }, rule: Rule) {
-    if (this.rulesCache.has(uri.href)) {
+  private createRuleHandler(rule: Rule) {
+    return async (uri: { href: string }) => {
+      const href = uri.href;
+
+      if (this.rulesCache.has(href)) {
+        return {
+          contents: [this.createContentObject(href, this.rulesCache.get(href)!)],
+        };
+      }
+
+      const rulePath = path.join(this.rootDir, 'rules', rule.path);
+      const content = await fs.readFile(rulePath, 'utf-8');
+
+      this.rulesCache.set(href, content);
+
+      process.stderr.write(`[INFO] Cached rule: ${rule.id}\n`);
+
       return {
-        contents: [
-          {
-            uri: uri.href,
-            mimeType: 'text/markdown',
-            text: this.rulesCache.get(uri.href)!,
-          },
-        ],
+        contents: [this.createContentObject(href, content)],
       };
-    }
+    };
+  }
 
-    const rulePath = path.join(this.rootDir, 'rules', rule.path);
-    const content = await fs.readFile(rulePath, 'utf-8');
-
-    this.rulesCache.set(uri.href, content);
-
-    process.stderr.write(`[INFO] Cached rule: ${rule.id}\n`);
-
+  private createContentObject(uri: string, content: string) {
     return {
-      contents: [
-        {
-          uri: uri.href,
-          mimeType: 'text/markdown',
-          text: content,
-        },
-      ],
+      uri,
+      mimeType: 'text/markdown',
+      text: content
     };
   }
 }
