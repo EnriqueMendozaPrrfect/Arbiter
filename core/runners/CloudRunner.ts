@@ -44,6 +44,8 @@ export class CloudRunner extends ArbiterRunner {
           if (transport.sessionId) this.sessions.delete(transport.sessionId);
         };
 
+        if (this.server.isConnected()) this.server.close().catch(() => { });
+
         await this.server.connect(transport);
         await transport.handleRequest(req, res);
       }
